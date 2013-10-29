@@ -1,0 +1,8 @@
+libpd9p.a: 9P library implementing both client and server
+* Can send Tversion
+
+pd9p: simple 9P client
+* tries to connect to stdout
+
+pd9psrv: simple 9P fileserver
+* does not exist
