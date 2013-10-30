@@ -1,14 +1,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "pd9p.h"
 
 int
-pd9p_send(int fd, char cmd, uint32_t tag, uint32_t datalen, char *data) {
+pd9p_send(int fd, char cmd, uint16_t tag, uint32_t datalen, char *data) {
 	char *buf, *p;
-	uint32_t sent;
-	uint32_t size;
+	uint32_t sent, size;
 	
 	size=4+1+2+datalen;
 	if(size>pd9p_msize)
@@ -22,5 +22,28 @@ pd9p_send(int fd, char cmd, uint32_t tag, uint32_t datalen, char *data) {
 	
 	for(sent=0; sent<size;)
 		sent+=write(fd, buf+sent, size-sent);
-	return 0;
+	
+	free(buf);
+	return sent;
+}
+
+int
+pd9p_recv(int fd, char *cmd, uint16_t *tag, uint32_t *datalen, char *data) {
+	char tmpdata[4];
+	uint32_t recvd, size;
+	
+	for(recvd=0; recvd<4;)
+		recvd+=read(fd, tmpdata, 4-recvd);
+	pd9p_dec4(tmpdata, &size);
+	*datalen=size-4-1-2;
+	
+	read(fd, cmd, 1);
+	
+	for(recvd=0; recvd<2;)
+		recvd+=read(fd, tmpdata, 2-recvd);
+	pd9p_dec2(tmpdata, tag);
+	
+	for(recvd=0; recvd < *datalen;)
+		recvd+=read(fd, data, *datalen-recvd);
+	return recvd;
 }

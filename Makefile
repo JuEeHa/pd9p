@@ -1,5 +1,6 @@
-LIBOBJS  = client.o comm.o encdec.o server.o
 LDFLAGS += -L.
+CFLAGS   = -Wall -Wextra
+LIBOBJS  = client.o comm.o encdec.o server.o
 OBJS     = pd9p.o
 
 .PHONY: all clean rebuild
