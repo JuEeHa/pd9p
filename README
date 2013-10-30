@@ -1,5 +1,5 @@
 libpd9p.a: 9P library implementing both client and server
-* Handles Tversion/Rversiion
+* Handles Tversion/Rversion
 
 pd9p: simple 9P client
 * connects to specified addr, exchanges version data
