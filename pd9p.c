@@ -45,7 +45,7 @@ main(int argc, char **argv) {
 		fputs("pd9p: error: sockconnect\n", stderr);
 	}
 	
-	if(pd9p_connect(s)) {
+	if(pd9p_connect(s) == -1) {
 		close(s);
 		fputs("pd9p: error: pd9p_connec\n", stderr);
 		return 1;

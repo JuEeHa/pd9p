@@ -1,6 +1,6 @@
 LDFLAGS += -L.
 CFLAGS   = -Wall -Wextra
-LIBOBJS  = client.o comm.o encdec.o server.o
+LIBOBJS  = client.o comm.o encdec.o fid.o server.o
 OBJS     = pd9p.o
 MAKEDEPS = Makefile pd9p.h
 
