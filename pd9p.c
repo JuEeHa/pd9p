@@ -35,6 +35,7 @@ sockconnect(char *name, uint16_t port) {
 int
 main(int argc, char **argv) {
 	int s;
+	pd9p_session *session;
 	
 	if(argc<3) {
 		fputs("Usage: pd9p ADDR PORT\n", stderr);
@@ -45,12 +46,13 @@ main(int argc, char **argv) {
 		fputs("pd9p: error: sockconnect\n", stderr);
 	}
 	
-	if(pd9p_connect(s) == -1) {
+	if((session=pd9p_connect(s)) == 0) {
 		close(s);
 		fputs("pd9p: error: pd9p_connec\n", stderr);
 		return 1;
 	}
 	
+	pd9p_closesession(session);
 	close(s);
 	return 0;
 }

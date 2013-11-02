@@ -1,21 +1,19 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-void **pd9p_unused_fids=0;
-uint32_t pd9p_fid_counter=0;
+#include "pd9p.h"
 
 uint32_t
-pd9p_newfid(void) {
+pd9p_newfid(pd9p_session *s) {
 	uint32_t fid;
-	void **newp;
-	if(!pd9p_unused_fids)
-		fid=pd9p_fid_counter++;
+	struct pd9p_fidlinklist *newp;
+	if(!(*s).freefids)
+		fid=(*s).fidcounter++;
 	else {
-		fid=*(uint32_t*)(pd9p_unused_fids[0]);
-		newp=(void**)pd9p_unused_fids[1];
-		free(pd9p_unused_fids[0]);
-		free(pd9p_unused_fids);
-		pd9p_unused_fids=newp;
+		fid=(*(*s).freefids).fid;
+		newp=(*(*s).freefids).next;
+		free((*s).freefids);
+		(*s).freefids=newp;
 	}
 	return fid;
 }

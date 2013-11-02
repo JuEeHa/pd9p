@@ -6,12 +6,12 @@
 #include "pd9p.h"
 
 int
-pd9p_send(int fd, char cmd, uint16_t tag, uint32_t datalen, char *data) {
+pd9p_send(pd9p_session *s, char cmd, uint16_t tag, uint32_t datalen, char *data) {
 	char *buf, *p;
 	uint32_t sent, size;
 	
 	size=4+1+2+datalen;
-	if(size>pd9p_msize)
+	if(size>(*s).msize)
 		return -1;
 	if((buf=malloc(size)) == 0)
 		exit(1);
@@ -21,29 +21,29 @@ pd9p_send(int fd, char cmd, uint16_t tag, uint32_t datalen, char *data) {
 	memcpy(p, data, datalen);
 	
 	for(sent=0; sent<size;)
-		sent+=write(fd, buf+sent, size-sent);
+		sent+=write((*s).fd, buf+sent, size-sent);
 	
 	free(buf);
 	return sent;
 }
 
 int
-pd9p_recv(int fd, char *cmd, uint16_t *tag, uint32_t *datalen, char *data) {
+pd9p_recv(pd9p_session *s, char *cmd, uint16_t *tag, uint32_t *datalen, char *data) {
 	char tmpdata[4];
 	uint32_t recvd, size;
 	
 	for(recvd=0; recvd<4;)
-		recvd+=read(fd, tmpdata, 4-recvd);
+		recvd+=read((*s).fd, tmpdata, 4-recvd);
 	pd9p_dec4(tmpdata, &size);
 	*datalen=size-4-1-2;
 	
-	read(fd, cmd, 1);
+	read((*s).fd, cmd, 1);
 	
 	for(recvd=0; recvd<2;)
-		recvd+=read(fd, tmpdata, 2-recvd);
+		recvd+=read((*s).fd, tmpdata, 2-recvd);
 	pd9p_dec2(tmpdata, tag);
 	
 	for(recvd=0; recvd < *datalen;)
-		recvd+=read(fd, data, *datalen-recvd);
+		recvd+=read((*s).fd, data, *datalen-recvd);
 	return recvd;
 }

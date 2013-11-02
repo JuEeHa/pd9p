@@ -13,7 +13,20 @@
 #define notag 0xFFFF
 #define nofid 0xFFFFFFFF
 
-extern uint32_t pd9p_msize;
+struct pd9p_fidlinklist {
+	uint32_t fid;
+	struct pd9p_fidlinklist *next;
+};
+
+struct pd9p_session {
+	int fd;
+	uint32_t msize;
+	uint32_t rootfid;
+	struct pd9p_fidlinklist *freefids;
+	uint32_t fidcounter;
+};
+
+typedef struct pd9p_session pd9p_session;
 
 /* encdec.c */
 
@@ -27,13 +40,14 @@ char *pd9p_dec4(char *buf, uint32_t *val); /* buf+4 */
 
 /* comm.c */
 
-int pd9p_send(int fd, char cmd, uint16_t tag, uint32_t datalen, char *data); /* amount of data written */
-int pd9p_recv(int fd, char *cmd, uint16_t *tag, uint32_t *datalen, char *data); /* amount of data read */
+int pd9p_send(pd9p_session *s, char cmd, uint16_t tag, uint32_t datalen, char *data); /* amount of data written */
+int pd9p_recv(pd9p_session *s, char *cmd, uint16_t *tag, uint32_t *datalen, char *data); /* amount of data read */
 
 /* client.c */
-uint32_t pd9p_connect(int fd); /* root fid on success, -1 on error */
+pd9p_session *pd9p_connect(int fd); /* session on success, 0 on error */
+void pd9p_closesession(pd9p_session *s);
 
 /* fid.c */
-uint32_t pd9p_newfid(void); /* unused fid */
+uint32_t pd9p_newfid(pd9p_session *s); /* unused fid */
 
 #endif
