@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "pd9p.h"
 
@@ -34,12 +36,13 @@ sockconnect(char *name, uint16_t port) {
 
 int
 main(int argc, char **argv) {
-	int s;
+	int s, inlen, outlen, f;
 	pd9p_session *session;
 	uint32_t file;
+	char buf[1024];
 	
-	if(argc<4) {
-		fputs("Usage: pd9p ADDR PORT PATH\n", stderr);
+	if(argc<6) {
+		fputs("Usage: pd9p addr port cmd remote local\n", stderr);
 		return 1;
 	}
 	
@@ -53,9 +56,24 @@ main(int argc, char **argv) {
 		return 1;
 	}
 	
-	printf("open(%s): %u\n", argv[3], file=pd9p_open(session, argv[3], pd9p_rdonly));
-	if(file!=errfid)
-		printf("close(%u): %i\n", file, pd9p_close(session, file));
+	if(!strcmp(argv[3], "get")) {
+		if((file=pd9p_open(session, argv[4], pd9p_rdonly)) == errfid) {
+			fputs("pd9p: error: pd9p_open\n", stderr);
+			return 1;
+		}
+		if((f=open(argv[4], O_WRONLY|O_CREAT, 0666)) == -1) {
+			fputs("pd9p: error: open\n", stderr);
+			return 1;
+		}
+		
+		inlen=0;
+		while((inlen=pd9p_read(session, file, buf+inlen, 1024)) > 0) {
+			for(outlen=0; outlen<inlen;)
+				outlen+=write(f, buf+outlen, inlen-outlen);
+		}
+		pd9p_close(session, file);
+		close(f);
+	}
 	
 	pd9p_closesession(session);
 	close(s);

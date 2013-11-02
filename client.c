@@ -229,3 +229,43 @@ pd9p_close(pd9p_session *s, uint32_t fid) {
 	
 	return 0;
 }
+
+int32_t
+pd9p_read(pd9p_session *s, uint32_t fid, char *buf, uint32_t count) {
+	uint32_t rdatalen, segmentlen;
+	uint16_t rtag;
+	char readdata[16], *p, rcmd, *rdata;
+	
+	/* FIXME: offset is ignored */
+	p=pd9p_enc4(readdata, fid);
+	p=pd9p_enc4(p, 0);
+	p=pd9p_enc4(p, 0);
+	p=pd9p_enc4(p, count);
+	
+	if(pd9p_send(s, Tread, 0, 16, readdata) == -1)
+		return -1;
+	
+	rdata=malloc((*s).msize);
+	if(pd9p_recv(s, &rcmd, &rtag, &rdatalen, rdata) == -1) {
+		free(rdata);
+		return -1;
+	}
+	
+	if(rcmd!=Rread)
+		return -1;
+	if(rtag!=0)
+		return -1;
+	if(rdatalen<4)
+		return -1;
+	
+	p=pd9p_dec4(rdata, &segmentlen);
+	if(rdatalen<segmentlen+4)
+		return -1;
+	if(count<segmentlen)
+		return -1;
+	memcpy(buf, p, segmentlen);
+	
+	free(rdata);
+	
+	return segmentlen;
+}
