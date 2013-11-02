@@ -219,12 +219,18 @@ pd9p_close(pd9p_session *s, uint32_t fid) {
 		return -1;
 	}
 	
-	if(rcmd!=Rclunk)
+	if(rcmd!=Rclunk) {
+		free(rdata);
 		return -1;
-	if(rtag!=0)
+	}
+	if(rtag!=0) {
+		free(rdata);
 		return -1;
-	if(rdatalen!=0)
+	}
+	if(rdatalen!=0) {
+		free(rdata);
 		return -1;
+	}
 	free(rdata);
 	
 	return 0;
@@ -245,18 +251,25 @@ pd9p_read(pd9p_session *s, uint32_t fid, char *buf, uint32_t count) {
 	if(pd9p_send(s, Tread, 0, 16, readdata) == -1)
 		return -1;
 	
-	rdata=malloc((*s).msize);
+	if((rdata=malloc((*s).msize)) == 0)
+		return -1;
 	if(pd9p_recv(s, &rcmd, &rtag, &rdatalen, rdata) == -1) {
 		free(rdata);
 		return -1;
 	}
 	
-	if(rcmd!=Rread)
+	if(rcmd!=Rread) {
+		free(rdata);
 		return -1;
-	if(rtag!=0)
+	}
+	if(rtag!=0) {
+		free(rdata);
 		return -1;
-	if(rdatalen<4)
+	}
+	if(rdatalen<4) {
+		free(rdata);
 		return -1;
+	}
 	
 	p=pd9p_dec4(rdata, &segmentlen);
 	if(rdatalen<segmentlen+4)
@@ -265,6 +278,59 @@ pd9p_read(pd9p_session *s, uint32_t fid, char *buf, uint32_t count) {
 		return -1;
 	memcpy(buf, p, segmentlen);
 	
+	free(rdata);
+	
+	return segmentlen;
+}
+
+int32_t
+pd9p_write(pd9p_session *s, uint32_t fid, char *buf, uint32_t count) {
+	uint32_t rdatalen, datalen, segmentlen;
+	uint16_t rtag;
+	char *writedata, *p, rcmd, *rdata;
+	
+	if(count>(*s).msize-16)
+		datalen=(*s).msize-16;
+	else
+		datalen=count;
+	
+	if((writedata=malloc(16+datalen)) == 0)
+		return -1;
+	
+	/* FIXME: offset is ignored */
+	p=pd9p_enc4(writedata, fid);
+	p=pd9p_enc4(p, 0);
+	p=pd9p_enc4(p, 0);
+	p=pd9p_enc4(p, datalen);
+	memcpy(p, buf, datalen);
+	
+	if(pd9p_send(s, Twrite, 0, datalen, writedata) == -1) {
+		free(writedata);
+		return -1;
+	}
+	
+	if((rdata=malloc((*s).msize)) == 0)
+		return -1;
+	
+	if(pd9p_recv(s, &rcmd, &rtag, &rdatalen, rdata) == -1) {
+		free(rdata);
+		return -1;
+	}
+	
+	if(rcmd!=Rwrite) {
+		free(rdata);
+		return -1;
+	}
+	if(rtag!=0) {
+		free(rdata);
+		return -1;
+	}
+	if(rdatalen!=4) {
+		free(rdata);
+		return -1;
+	}
+	
+	pd9p_dec4(rdata, &segmentlen);
 	free(rdata);
 	
 	return segmentlen;

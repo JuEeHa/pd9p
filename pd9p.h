@@ -15,6 +15,8 @@
 #define Ropen    113
 #define Tread    116
 #define Rread    117
+#define Twrite   118
+#define Rwrite   119
 #define Tclunk   120
 #define Rclunk   121
 
@@ -62,7 +64,8 @@ void pd9p_closesession(pd9p_session *s);
 uint32_t pd9p_getfid(pd9p_session *s, char *path); /* fid on success, errfid on error */
 uint32_t pd9p_open(pd9p_session *s, char *path, char mode); /* fid on success, errfid on error */
 int pd9p_close(pd9p_session *s, uint32_t fid); /* 0 on success, -1 on error */
-int32_t pd9p_read(pd9p_session *s, uint32_t fid, char *buf, uint32_t count); /* number of bytes written on success, -1 on error */
+int32_t pd9p_read(pd9p_session *s, uint32_t fid, char *buf, uint32_t count); /* number of bytes read on success, -1 on error */
+int32_t pd9p_write(pd9p_session *s, uint32_t fid, char *buf, uint32_t count); /* number of bytes written on success, -1 on error */
 
 /* fid.c */
 uint32_t pd9p_newfid(pd9p_session *s); /* unused fid */
