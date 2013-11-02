@@ -17,3 +17,13 @@ pd9p_newfid(pd9p_session *s) {
 	}
 	return fid;
 }
+
+void
+pd9p_delfid(pd9p_session *s, uint32_t fid) {
+	struct pd9p_fidlinklist *newp;
+	if((newp=malloc(sizeof(struct pd9p_fidlinklist))) == 0)
+		exit(1);
+	(*newp).fid=fid;
+	(*newp).next=(*s).freefids;
+	(*s).freefids=newp;
+}

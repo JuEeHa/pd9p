@@ -9,9 +9,20 @@
 #define Rauth    103
 #define Tattach  104
 #define Rattach  105
+#define Twalk    110
+#define Rwalk    111
+#define Topen    112
+#define Ropen    113
+#define Tclunk   120
+#define Rclunk   121
 
 #define notag 0xFFFF
 #define nofid 0xFFFFFFFF
+
+#define pd9p_rdonly 0
+#define pd9p_wronly 1
+
+#define errfid (uint32_t)-1
 
 struct pd9p_fidlinklist {
 	uint32_t fid;
@@ -46,8 +57,12 @@ int pd9p_recv(pd9p_session *s, char *cmd, uint16_t *tag, uint32_t *datalen, char
 /* client.c */
 pd9p_session *pd9p_connect(int fd); /* session on success, 0 on error */
 void pd9p_closesession(pd9p_session *s);
+uint32_t pd9p_getfid(pd9p_session *s, char *path); /* fid on success, errfid on error */
+uint32_t pd9p_open(pd9p_session *s, char *path, char mode); /* fid on success, errfid on error */
+int pd9p_close(pd9p_session *s, uint32_t fid); /* 0 on success, -1 on error */
 
 /* fid.c */
 uint32_t pd9p_newfid(pd9p_session *s); /* unused fid */
+void pd9p_delfid(pd9p_session *s, uint32_t fid);
 
 #endif

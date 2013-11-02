@@ -36,9 +36,10 @@ int
 main(int argc, char **argv) {
 	int s;
 	pd9p_session *session;
+	uint32_t file;
 	
-	if(argc<3) {
-		fputs("Usage: pd9p ADDR PORT\n", stderr);
+	if(argc<4) {
+		fputs("Usage: pd9p ADDR PORT PATH\n", stderr);
 		return 1;
 	}
 	
@@ -51,6 +52,10 @@ main(int argc, char **argv) {
 		fputs("pd9p: error: pd9p_connec\n", stderr);
 		return 1;
 	}
+	
+	printf("open(%s): %u\n", argv[3], file=pd9p_open(session, argv[3], pd9p_rdonly));
+	if(file!=errfid)
+		printf("close(%u): %i\n", file, pd9p_close(session, file));
 	
 	pd9p_closesession(session);
 	close(s);
